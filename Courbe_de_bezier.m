@@ -7,6 +7,7 @@ matrice_pk=0;           % ensemble des points de controle
 matrice_mk=0;           % ensemble des tangentes
 c = 0;                  % choix du paramètre c
 N = 0;                  % borne supérieure de l'intervalle
+splines = 0;
 
 while K~=5 % arréter
    K=menu('Que voulez-vous faire ?','NEW   (bouton souris, puis <ENTER>', 'AJOUTER UN POINT','CHANGER LA VALEUR DU PARAMETRE C','SUPPRIMER UN POINT','ARRETER')
@@ -25,22 +26,26 @@ while K~=5 % arréter
          end 
          matrice_pk(1,i)=X;   % coordonnees x des points de controle
          matrice_pk(2,i)=Y;   % coordonnees y des points de controle
-	 plot(matrice_pk(1,i),matrice_pk(2,i),'o') % affichage du point de controle i
+         plot(matrice_pk(1,i),matrice_pk(2,i),'o') % affichage du point de controle i
          plot(matrice_pk(1,:),matrice_pk(2,:),'b') % affichage du polygone de controle
       end
 
 
-      prompt = {'Saisir une valeur du paramètre c:')
+      prompt = {'Saisir une valeur du paramètre c:'}
       title = 'Input'
       dims = [1 20];
-      definput = {'20','hsv'};
+      definput = {'0.5','hsv'};
       answer = inputdlg(prompt,title,dims,definput);
 
       %estimation des tangentes
+      
       matrice_mk = estimation_mk(matrice_pk, c);
       %Tracé des splines
       splines = calcul_splines(matrice_pk, matrice_mk);
-
+      
+      Bezier_curve_points = eval_bernstein(splines,a,b,resolution) ;
+      plot(Bezier_curve_points(1,:),Bezier_curve_points(2,:),'r', 'linewidth',2);
+           
    elseif K==2 % ajouter un point
       [X,Y]=ginput(1);
       while ~isempty(X)
@@ -55,21 +60,22 @@ while K~=5 % arréter
 	   plot(matrice_pk(1,k), matrice_pk(2,k),'o') % affichage du point de controle k
 	 end
          plot(matrice_pk(1,:),matrice_pk(2,:),'b') % affichage du polygone de controle
+         matrice_mk = estimation_mk(matrice_pk, c);
          position = 0; % il faut changer tout ca, car on rajoute un point, on ne change pas un autre
          spline = calcul_spline_unitaire(matrice_pk, matrice_mk, matrice_splines, position) ;
-      	 plot(Bezier_curve_points(1,:),Bezier_curve_points(2,:),'r', 'linewidth',2);
+      	 plot(spline(1,:),spline(2,:),'r', 'linewidth',2);
          [X,Y]=ginput(1);
       end
 
    elseif K==3 % changer le parametre c
-      prompt = {'Saisir une nouvelle valeur du paramètre c:')
-      title = 'Input'
+      prompt = 'Saisir une nouvelle valeur du paramètre c:';
+      title = 'Input';
       dims = [1 20];
       definput = {'20','hsv'};
-      answer = inputdlg(prompt,title,dims,definput)
+      answer = inputdlg(prompt,title,dims,definput);
       %ré-estimation des tangentes
       matrice_mk = estimation_mk(matrice_pk, c);
-   end
+   
 
    elseif K==4 % supprimer un point 
       [X,Y]=ginput(1);
